@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{0BB690DA-0EA6-46FF-9601-E46BA380F756}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>OggVorbisSharp</RootNamespace>
+    <AssemblyName>OggVorbisSharp</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Decompressor\OggDecompressor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Ogg\Bitwises.cs" />
+    <Compile Include="Ogg\Framing.cs" />
+    <Compile Include="Ogg\Ogg.cs" />
+    <Compile Include="Ogg\OggTest_Bitwises.cs" />
+    <Compile Include="Ogg\OggTest_Framing.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Vorbis\Analysis.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Backends.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Bitrate.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Block.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\CodeBook.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Codec.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Codec_Internal.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Envelope.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Floor0.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Floor1.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\HighLevel.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Info.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Lsp.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Mapping0.cs" />
+    <Compile Include="Vorbis\Masking.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Mdct.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Psy.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Registry.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Res0.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Scales.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\SharedBook.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\SmallFT.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Synthesis.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Vorbis.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Vorbis\Window.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

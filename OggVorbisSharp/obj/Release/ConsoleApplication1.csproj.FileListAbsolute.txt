@@ -1,0 +1,5 @@
+D:\Dev\Audio\ConsoleApplication1\obj\Release\ResolveAssemblyReference.cache
+D:\Dev\Audio\ConsoleApplication1\bin\Release\ConsoleApplication1.exe
+D:\Dev\Audio\ConsoleApplication1\bin\Release\ConsoleApplication1.pdb
+D:\Dev\Audio\ConsoleApplication1\obj\Release\ConsoleApplication1.exe
+D:\Dev\Audio\ConsoleApplication1\obj\Release\ConsoleApplication1.pdb
