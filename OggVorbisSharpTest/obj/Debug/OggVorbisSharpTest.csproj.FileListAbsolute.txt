@@ -1,7 +1,0 @@
-D:\Dev\Audio\OggVorbisSharp\OggVorbisSharpTest\obj\Debug\ResolveAssemblyReference.cache
-D:\Dev\Audio\OggVorbisSharp\OggVorbisSharpTest\bin\Debug\OggVorbisSharpTest.exe
-D:\Dev\Audio\OggVorbisSharp\OggVorbisSharpTest\bin\Debug\OggVorbisSharpTest.pdb
-D:\Dev\Audio\OggVorbisSharp\OggVorbisSharpTest\bin\Debug\OggVorbisSharp.dll
-D:\Dev\Audio\OggVorbisSharp\OggVorbisSharpTest\bin\Debug\OggVorbisSharp.pdb
-D:\Dev\Audio\OggVorbisSharp\OggVorbisSharpTest\obj\Debug\OggVorbisSharpTest.exe
-D:\Dev\Audio\OggVorbisSharp\OggVorbisSharpTest\obj\Debug\OggVorbisSharpTest.pdb
