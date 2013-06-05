@@ -56,7 +56,7 @@ namespace OggVorbisSharp
                 b.buffer = (byte *)_ogg_malloc(BUFFER_INCREMENT);
                 b.ptr = b.buffer;
                 
-                ZeroMemory((IntPtr)b.ptr, BUFFER_INCREMENT);
+                ZeroMemory(b.ptr, BUFFER_INCREMENT);
                 
                 b.storage = BUFFER_INCREMENT;
             }
@@ -131,7 +131,7 @@ namespace OggVorbisSharp
                     goto err;
                 }
                 
-                void *ret = _ogg_realloc((IntPtr)b.buffer, b.storage + BUFFER_INCREMENT);
+                void *ret = _ogg_realloc(b.buffer, b.storage + BUFFER_INCREMENT);
                 
                 if (ret == null) {
                     goto err;
@@ -180,76 +180,74 @@ namespace OggVorbisSharp
         
         static public void oggpackB_write(ref oggpack_buffer b, uint value, int bits) 
         {
-            bool isError = false;
-        
-            try
+            if (bits < 0 || bits > 32)
             {
-                if (bits < 0 || bits > 32) 
+                goto err;
+            }
+
+            if (b.endbyte >= b.storage - 4)
+            {
+                if (b.ptr == null)
                 {
-                    isError = true;
                     return;
-                }   
-                
-                if (b.endbyte >= b.storage - 4)
-                {
-                    if (b.ptr == null) {
-                        return;
-                    }
-                    
-                    if (b.storage > Int32.MaxValue - BUFFER_INCREMENT) {
-                        isError = true;
-                        return;
-                    }
-                    
-                    void *ret = _ogg_realloc((IntPtr)b.buffer, b.storage + BUFFER_INCREMENT);
-                    
-                    if (ret == null) {
-                        isError = true;
-                        return;
-                    }
-                    
-                    b.buffer = (byte *)ret;
-                    b.storage += BUFFER_INCREMENT;
-                    b.ptr = b.buffer + b.endbyte;
-                }
-                
-                value = (value & mask[bits]) << (32 - bits);
-                bits += b.endbit;
-                
-                b.ptr[0] |= (byte)(value >> (24 + b.endbit));
-                    
-                if (bits >= 8) {
-                    b.ptr[1] = (byte)(value >> (16 + b.endbit));
-                } 
-                
-                if (bits >= 16) {
-                    b.ptr[2] = (byte)(value >> (8 + b.endbit));
-                } 
-                
-                if (bits >= 24) {
-                    b.ptr[3] = (byte)(value >> b.endbit);
-                } 
-                
-                if (bits >= 32) 
-                {
-                    if (b.endbit > 0) {
-                        b.ptr[4] = (byte)(value << (8 - b.endbit));
-                    }
-                    else {
-                        b.ptr[4] = 0;
-                    }
                 }
 
-                b.endbyte += bits / 8;
-                b.ptr += bits / 8;
-                b.endbit = bits & 7;
+                if (b.storage > Int32.MaxValue - BUFFER_INCREMENT)
+                {
+                    goto err;
+                }
+
+                void* ret = _ogg_realloc(b.buffer, b.storage + BUFFER_INCREMENT);
+
+                if (ret == null)
+                {
+                    goto err;
+                }
+
+                b.buffer = (byte*)ret;
+                b.storage += BUFFER_INCREMENT;
+                b.ptr = b.buffer + b.endbyte;
             }
-            finally
+
+            value = (value & mask[bits]) << (32 - bits);
+            bits += b.endbit;
+
+            b.ptr[0] |= (byte)(value >> (24 + b.endbit));
+
+            if (bits >= 8)
             {
-                if (isError == true) {
-                    oggpack_writeclear(ref b);
+                b.ptr[1] = (byte)(value >> (16 + b.endbit));
+            }
+
+            if (bits >= 16)
+            {
+                b.ptr[2] = (byte)(value >> (8 + b.endbit));
+            }
+
+            if (bits >= 24)
+            {
+                b.ptr[3] = (byte)(value >> b.endbit);
+            }
+
+            if (bits >= 32)
+            {
+                if (b.endbit > 0)
+                {
+                    b.ptr[4] = (byte)(value << (8 - b.endbit));
+                }
+                else
+                {
+                    b.ptr[4] = 0;
                 }
             }
+
+            b.endbyte += bits / 8;
+            b.ptr += bits / 8;
+            b.endbit = bits & 7;
+            return;
+
+        err:
+            oggpack_writeclear(ref b);
         }
         
         static public void oggpack_writealign(ref oggpack_buffer b) 
@@ -300,7 +298,7 @@ namespace OggVorbisSharp
                         goto err;
                     }
                     
-                    void *ret = _ogg_realloc((IntPtr)b.buffer, b.storage);
+                    void *ret = _ogg_realloc(b.buffer, b.storage);
                     
                     if (ret == null) {
                         goto err;
@@ -310,7 +308,7 @@ namespace OggVorbisSharp
                     b.ptr = b.buffer + b.endbyte;
                 }
                 
-                CopyMemory((IntPtr)b.ptr, (IntPtr)source, bytes);
+                CopyMemory(b.ptr, source, bytes);
                 
                 b.ptr += bytes;
                 b.endbyte += bytes;
@@ -343,7 +341,8 @@ namespace OggVorbisSharp
         
         static public void oggpack_reset(ref oggpack_buffer b)
         {
-            if (b.ptr == null) {
+            if (b.ptr == null)
+            {
                 return;
             }
 
@@ -361,16 +360,17 @@ namespace OggVorbisSharp
         {
             if (b != null)
             {
-                if (b.buffer != null) {
+                if (b.buffer != null)
+                {
                     _ogg_free(b.buffer);
                 }
-                
+
                 b.endbyte = 0;
                 b.endbit = 0;
-                
+
                 b.buffer = null;
                 b.ptr = null;
-                
+
                 b.storage = 0;
             }
         }

@@ -42,8 +42,9 @@ namespace OggVorbisSharp
         {
             int i;
             float wdel = (float)Math.PI / ln;
-            
-            for (i = 0; i < m; i++) {
+
+            for (i = 0; i < m; i++)
+            {
                 lsp[i] = (float)(2.0f * Math.Cos(lsp[i]));
             }
             

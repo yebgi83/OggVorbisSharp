@@ -28,11 +28,11 @@ namespace OggVorbisSharp
     {
         static public int vorbis_synthesis(ref vorbis_block vb, ref Ogg.ogg_packet op)
         {
-            vorbis_dsp_state vd = vb.vd;
-            private_state b = vd.backend_state as private_state;
-            vorbis_info vi = vd.vi;
-            codec_setup_info ci = vi.codec_setup as codec_setup_info;
-            Ogg.oggpack_buffer opb = vb.opb;
+            vorbis_dsp_state vd = (vb != null) ? vb.vd : null;
+            private_state b = (vd != null) ? (vd.backend_state as private_state) : null;
+            vorbis_info vi = (vd != null) ? vd.vi : null;
+            codec_setup_info ci = (vi != null) ? (vi.codec_setup as codec_setup_info) : null;
+            Ogg.oggpack_buffer opb = (vb != null) ? vb.opb : null;
 
             int type, mode, i;
 
@@ -199,6 +199,28 @@ namespace OggVorbisSharp
             }
             
             return ci.blocksizes[ci.mode_param[mode].blockflag];
+        }
+        
+        static public int vorbis_synthesis_halfrate(ref vorbis_info vi,int flag)
+        {
+            /* set / clear half-sample-rate mode */
+            codec_setup_info ci = vi.codec_setup as codec_setup_info;
+
+            /* right now, our MDCT can't handle < 64 sample windows. */
+            if(ci.blocksizes[0]<=64 && flag != 0)
+            {
+                return -1;
+            }
+            else
+            {
+                ci.halfrate_flag=(flag != 0 ?1:0);
+                return 0;
+            }
+        }
+
+        static public int vorbis_synthesis_halfrate_p(ref vorbis_info vi)
+        {
+            return (vi.codec_setup as codec_setup_info).halfrate_flag;
         }
     }
 }

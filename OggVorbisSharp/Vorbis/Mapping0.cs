@@ -291,7 +291,7 @@ namespace OggVorbisSharp
                     vb.mode = modenumber;
 
                     floor_posts[i] = (int**)_vorbis_block_alloc(ref vb, PACKETBLOBS * sizeof(int*));
-                    ZeroMemory((IntPtr)floor_posts[i], sizeof(int*) * PACKETBLOBS);
+                    ZeroMemory(floor_posts[i], sizeof(int*) * PACKETBLOBS);
 
                     for (j = 0; j < n / 2; j++)
                     {
@@ -485,7 +485,7 @@ namespace OggVorbisSharp
                     nonzero[i] = 0;
                 }
 
-                ZeroMemory((IntPtr)vb.pcm[i], sizeof(float) * n / 2);
+                ZeroMemory(vb.pcm[i], sizeof(float) * n / 2);
             }
 
             /* channel coupling can 'dirty' the nonzero listing */

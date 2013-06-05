@@ -247,7 +247,7 @@ namespace OggVorbisSharp
             }
             else 
             {
-                ZeroMemory((IntPtr)_out, sizeof(float) * look.n[vb.W]);
+                ZeroMemory(_out, sizeof(float) * look.n[vb.W]);
                 return 0;
             }
         }

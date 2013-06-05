@@ -421,7 +421,7 @@ namespace OggVorbisSharp
             
             for (i = 0; i < ch; i++) {
                 partword[i] = (int *)_vorbis_block_alloc(ref vb, n / samples_per_partition * sizeof(int));
-                ZeroMemory((IntPtr)partword[i], n / samples_per_partition * sizeof(int));
+                ZeroMemory(partword[i], n / samples_per_partition * sizeof(int));
             }
             
             for (i = 0; i < partvals; i++) 
@@ -476,7 +476,7 @@ namespace OggVorbisSharp
             int** partword = (int **)_vorbis_block_alloc(ref vb, sizeof(int *));
             
             partword[0] = (int *)_vorbis_block_alloc(ref vb, partvals * sizeof(int));
-            ZeroMemory((IntPtr)partword[0], partvals * sizeof(int));
+            ZeroMemory(partword[0], partvals * sizeof(int));
             
             for (i = 0, l = info.begin / ch; i < partvals; i++)
             {

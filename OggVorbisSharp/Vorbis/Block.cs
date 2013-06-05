@@ -122,7 +122,7 @@ namespace OggVorbisSharp
             /* consolidate storage */
             if (vb.totaluse > 0) 
             {
-                vb.localstore = _ogg_realloc((IntPtr)vb.localstore, vb.totaluse + vb.localalloc);
+                vb.localstore = _ogg_realloc(vb.localstore, vb.totaluse + vb.localalloc);
                 vb.localalloc += vb.totaluse;
                 vb.totaluse = 0;
             }
@@ -372,7 +372,7 @@ namespace OggVorbisSharp
             int i;
             
             vorbis_info vi = v.vi;
-            codec_setup_info ci = vi.codec_setup as codec_setup_info;
+            codec_setup_info ci = (vi != null) ? vi.codec_setup as codec_setup_info : null;
             private_state b = v.backend_state as private_state;
             
             if (b != null) 
@@ -437,26 +437,18 @@ namespace OggVorbisSharp
                 
                 drft_clear(ref b.fft_look[0]);
                 drft_clear(ref b.fft_look[1]);
+
+                _ogg_free(b.header);
+                _ogg_free(b.header1);
+                _ogg_free(b.header2);
+                
+                b.header = null;
+                b.header1 = null;
+                b.header2 = null;
             }
-            
+
             v.pcm = null;
             v.pcmret = null;
-            
-            if (b.header != IntPtr.Zero) {
-                _ogg_free(b.header.ToPointer());
-            }
-            
-            if (b.header1 != IntPtr.Zero) {
-                _ogg_free(b.header1.ToPointer());
-            }
-            
-            if (b.header2 != IntPtr.Zero) {
-                _ogg_free(b.header2.ToPointer());
-            }
-            
-            b.header = IntPtr.Zero;
-            b.header1 = IntPtr.Zero;
-            b.header2 = IntPtr.Zero;
         }
         
         /* do the deltas, envelope shaping, pre-echo and determine the size of the next block on which to continue analysis */
@@ -567,7 +559,7 @@ namespace OggVorbisSharp
             
             for (i = 0; i < vi.channels; i++) {
                 vbi.pcmdelay[i] = (float *)_vorbis_block_alloc(ref vb, sizeof(float) * (vb.pcmend + beginW));
-                CopyMemory((IntPtr)vbi.pcmdelay[i], (IntPtr)v.pcm[i], sizeof(float) * (vb.pcmend + beginW));
+                CopyMemory(vbi.pcmdelay[i], v.pcm[i], sizeof(float) * (vb.pcmend + beginW));
                 vb.pcm[i] = vbi.pcmdelay[i] + beginW;
             }
             
@@ -595,7 +587,7 @@ namespace OggVorbisSharp
                     v.pcm_current -= movementW;
                     
                     for (i = 0; i < vi.channels; i++) {
-                        CopyMemory((IntPtr)v.pcm[i], (IntPtr)(v.pcm[i] + movementW), v.pcm_current);
+                        CopyMemory(v.pcm[i], v.pcm[i] + movementW, v.pcm_current);
                     }
                     
                     v.lW = v.W;
@@ -930,7 +922,7 @@ namespace OggVorbisSharp
         }
         
         /* pcm==NULL indicates we just want the pending samples, no more */
-        static public int vorbis_synthesis_pcmout(ref vorbis_dsp_state v, ref IntPtr pcm)
+        static public int vorbis_synthesis_pcmout(ref vorbis_dsp_state v, ref float **pcm)
         {
             vorbis_info vi = v.vi;
             
@@ -940,12 +932,17 @@ namespace OggVorbisSharp
                     v.pcmret[i] = v.pcm[i] + v.pcm_returned;
                 }
                 
-                pcm = (IntPtr)v.pcmret;
-              
+                pcm = v.pcmret;
                 return v.pcm_current - v.pcm_returned;
             }
             
             return 0;
+        }
+        
+        static public int vorbis_synthesis_pcmout(ref vorbis_dsp_state v)
+        {
+            float** pcm_null = null;
+            return vorbis_synthesis_pcmout(ref v, ref pcm_null);
         }
         
         static public int vorbis_synthesis_read(ref vorbis_dsp_state v, int n)
@@ -965,7 +962,7 @@ namespace OggVorbisSharp
           This funtion works like pcmout above, except it will also expose
           this implicit buffer data not normally decoded. */
           
-        static public int vorbis_syncthesis_lapout(ref vorbis_dsp_state v, ref float** pcm)
+        static public int vorbis_synthesis_lapout(ref vorbis_dsp_state v, ref float** pcm)
         {
             vorbis_info vi = v.vi;
             codec_setup_info ci = vi.codec_setup as codec_setup_info;

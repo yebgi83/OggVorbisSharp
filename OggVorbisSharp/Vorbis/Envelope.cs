@@ -354,7 +354,7 @@ namespace OggVorbisSharp
             if (last + VE_WIN + VE_POST > ve.storage)
             {
                 ve.storage = last + VE_WIN + VE_POST; /* be sure */
-                ve.mark = (int *)_ogg_realloc((IntPtr)ve.mark, ve.storage * sizeof(int));
+                ve.mark = (int *)_ogg_realloc(ve.mark, ve.storage * sizeof(int));
             }
 
             for (j = first; j < last; j++)
@@ -480,7 +480,7 @@ namespace OggVorbisSharp
             int smallsize = e.current / e.searchstep + VE_POST; /* adjust for placing marks ahead of ve->current */
             int smallshift = shift / e.searchstep;
 
-            CopyMemory((IntPtr)e.mark, (IntPtr)(e.mark + smallshift), (smallsize - smallshift) * sizeof(int));
+            CopyMemory(e.mark, e.mark + smallshift, (smallsize - smallshift) * sizeof(int));
 
             e.current -= shift;
 

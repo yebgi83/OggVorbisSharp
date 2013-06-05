@@ -1,5 +1,10 @@
+D:\Dev\Audio\OggVorbisSharp\obj\Release\ResolveAssemblyReference.cache
 D:\Dev\Audio\OggVorbisSharp\bin\Release\OggVorbisSharp.dll
 D:\Dev\Audio\OggVorbisSharp\bin\Release\OggVorbisSharp.pdb
-D:\Dev\Audio\OggVorbisSharp\obj\Release\ResolveAssemblyReference.cache
 D:\Dev\Audio\OggVorbisSharp\obj\Release\OggVorbisSharp.dll
 D:\Dev\Audio\OggVorbisSharp\obj\Release\OggVorbisSharp.pdb
+D:\Dev\Audio\OggVorbisSharp\OggVorbisSharp\bin\Release\OggVorbisSharp.dll
+D:\Dev\Audio\OggVorbisSharp\OggVorbisSharp\bin\Release\OggVorbisSharp.pdb
+D:\Dev\Audio\OggVorbisSharp\OggVorbisSharp\obj\Release\ResolveAssemblyReference.cache
+D:\Dev\Audio\OggVorbisSharp\OggVorbisSharp\obj\Release\OggVorbisSharp.dll
+D:\Dev\Audio\OggVorbisSharp\OggVorbisSharp\obj\Release\OggVorbisSharp.pdb

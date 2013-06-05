@@ -6,7 +6,7 @@ using System.Text;
 
 namespace OggVorbisSharp
 {
-    public class OggDecompressor
+    public unsafe class OggDecompressor
     {
         public enum Status
         {
@@ -74,7 +74,7 @@ namespace OggVorbisSharp
             }
         }
         
-        public OggDecompressor()
+        public OggVorbisDecoder()
         {
             status = Status.Idle;
             lastError = Error.NoError;
@@ -87,7 +87,7 @@ namespace OggVorbisSharp
                 return false;
             }
             
-            IntPtr syncBuffer = GetSyncBuffer(buffer.Length);
+            byte *syncBuffer = GetSyncBuffer(buffer.Length);
             
             WriteSyncBuffer
             (
@@ -202,7 +202,7 @@ namespace OggVorbisSharp
 	        } 
         }
         
-        private IntPtr GetSyncBuffer(int syncBufferSize)
+        private byte *GetSyncBuffer(int syncBufferSize)
         {
             return Ogg.ogg_sync_buffer
             (
@@ -211,13 +211,13 @@ namespace OggVorbisSharp
             );
         }
         
-        private int WriteSyncBuffer(Byte[] bufferFrom, IntPtr syncBuffer)
+        private int WriteSyncBuffer(byte[] bufferFrom, byte *syncBuffer)
         {
             Marshal.Copy
             (
                 bufferFrom,
                 0,
-                syncBuffer,
+                (IntPtr)syncBuffer,
                 bufferFrom.Length 
             );
         
@@ -430,7 +430,7 @@ namespace OggVorbisSharp
             throw new NotImplementedException();
         }
         
-        private int PcmOut(ref IntPtr pcm)
+        private int PcmOut(ref float **pcm)
         {   
             return Vorbis.vorbis_synthesis_pcmout
             (
@@ -559,7 +559,7 @@ namespace OggVorbisSharp
 			}
 		}
 		
-		private bool GetBlock(IntPtr buffer, int bufferLength, ref Byte[] resultBuffer)
+		private bool GetBlock(byte *buffer, int bufferLength, ref Byte[] resultBuffer)
 		{
         	MemoryStream resultBufferStream = new MemoryStream();
         
@@ -604,7 +604,7 @@ namespace OggVorbisSharp
 	                        else
 	                        {
 	                            // We have a packet. Decode it!
-	                            IntPtr pcm = IntPtr.Zero;
+	                            float **pcm = null;
                                 
                                 int samples;
                                 int channels = this.Channels;
@@ -662,7 +662,7 @@ namespace OggVorbisSharp
 	        return true;
 		}
 		
-		private void Interleave(IntPtr pcm, int channels, int sampleSize, ref Byte[] resultBlock)
+		private void Interleave(float **pcm, int channels, int sampleSize, ref Byte[] resultBlock)
 		{
 		    // lpppsz_pcm_buffer is a multichannel float vector. In stereo, for example, pcm[0] is left
 	        // pcm[1] is right. Samples is the size of each channel. Convert the float values
@@ -676,7 +676,7 @@ namespace OggVorbisSharp
 	            // Convert floats to 16 bit signed ints (host order) and interleave
 	            for (int channel = 0; channel < channels; channel++)
 	            {
-	                IntPtr bufferPtr = Marshal.ReadIntPtr(pcm, IntPtr.Size * channel);
+	                IntPtr bufferPtr = (IntPtr)pcm[channel];
     	            
 	                int resultBlockOffset = sizeof(short) * sampleSize * channel;
     	            

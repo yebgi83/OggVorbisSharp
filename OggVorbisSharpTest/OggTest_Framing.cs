@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using OggVorbisSharp;
 
-namespace OggVorbisSharp
+namespace OggVorbisSharpTest
 {
-    [TestClass]    
     static public unsafe class OggTest_Flaming
     {
         [DllImport("kernel32.dll", EntryPoint = "RtlMoveMemory")]
-        static private extern void CopyMemory(void *dest, void *source, int length);
-            
-        static Ogg.ogg_stream_state os_en, os_de;
-        static Ogg.ogg_sync_state   oy;
-    
+        static private extern void CopyMemory(void* dest, void* source, int length);
+
+        static Ogg.ogg_stream_state os_en = new Ogg.ogg_stream_state();
+        static Ogg.ogg_stream_state os_de = new Ogg.ogg_stream_state();
+        static Ogg.ogg_sync_state oy = new Ogg.ogg_sync_state();
+
         static int sequence = 0;
         static int lastno = 0;
-        
+
         /* 17 only */
         static readonly int[] head1_0 = 
         {
@@ -39,7 +39,7 @@ namespace OggVorbisSharp
             1, 
             17
         };
-            
+
         static readonly int[] head2_1 = 
         {
             0x4f, 0x67, 0x67, 0x53, 0, 0x04,
@@ -60,7 +60,7 @@ namespace OggVorbisSharp
             1, 
             0
         };
-        
+
         static readonly int[] head2_2 = 
         {
             0x4f, 0x67, 0x67, 0x53, 0, 0x04,
@@ -334,19 +334,18 @@ namespace OggVorbisSharp
             1, 
             0
         };
-        
-        [TestMethod]
+
         static public void Test()
         {
             Ogg.ogg_stream_init(ref os_en, 0x04030201);
             Ogg.ogg_stream_init(ref os_de, 0x04030201);
             Ogg.ogg_sync_init(ref oy);
-            
+
             /* Exercise each code path in the framing code.  Also verify that the checksums are working.  */
             {
                 /* 17 only */
-                int[] packets = {17, -1};
-                int[][] headret = {head1_0, null};
+                int[] packets = { 17, -1 };
+                int[][] headret = { head1_0, null };
 
                 Console.Write("testing single page encoding... ");
                 test_pack(packets, headret, 0, 0, 0);
@@ -354,8 +353,8 @@ namespace OggVorbisSharp
 
             {
                 /* 17, 254, 255, 256, 500, 510, 600 byte, pad */
-                int[] packets = {17, 254, 255, 256, 500, 510, 600, -1};
-                int[][] headret = {head1_1, head2_1, null};
+                int[] packets = { 17, 254, 255, 256, 500, 510, 600, -1 };
+                int[][] headret = { head1_1, head2_1, null };
 
                 Console.Write("testing basic page encoding... ");
                 test_pack(packets, headret, 0, 0, 0);
@@ -363,8 +362,8 @@ namespace OggVorbisSharp
 
             {
                 /* nil packets; beginning,middle,end */
-                int[] packets = {0, 17, 254, 255, 0, 256, 0, 500, 510, 600, 0, -1};
-                int[][] headret = {head1_2, head2_2, null};
+                int[] packets = { 0, 17, 254, 255, 0, 256, 0, 500, 510, 600, 0, -1 };
+                int[][] headret = { head1_2, head2_2, null };
 
                 Console.Write("testing basic nil packets... ");
                 test_pack(packets, headret, 0, 0, 0);
@@ -372,8 +371,8 @@ namespace OggVorbisSharp
 
             {
                 /* large initial packet */
-                int[] packets = {4345, 259, 255, -1};
-                int[][] headret = {head1_3, head2_3, null};
+                int[] packets = { 4345, 259, 255, -1 };
+                int[][] headret = { head1_3, head2_3, null };
 
                 Console.Write("testing initial-packet lacing > 4k... ");
                 test_pack(packets, headret, 0, 0, 0);
@@ -381,8 +380,8 @@ namespace OggVorbisSharp
 
             {
                 /* continuing packet test; with page spill expansion, we have to overflow the lacing table. */
-                int[] packets = {0, 65500, 259, 255, -1};
-                int[][] headret = {head1_4, head2_4, head3_4, null};
+                int[] packets = { 0, 65500, 259, 255, -1 };
+                int[][] headret = { head1_4, head2_4, head3_4, null };
 
                 Console.Write("testing single packet page span... ");
                 test_pack(packets, headret, 0, 0, 0);
@@ -390,11 +389,11 @@ namespace OggVorbisSharp
 
             {
                 /* spill expand packet test */
-                int[] packets = {0, 4345, 259, 255, 0, 0, -1};
-                int[][] headret = {head1_4b, head2_4b, head3_4b, null};
+                int[] packets = { 0, 4345, 259, 255, 0, 0, -1 };
+                int[][] headret = { head1_4b, head2_4b, head3_4b, null };
 
                 Console.Write("testing page spill expansion... ");
-                test_pack(packets,headret, 0, 0, 0);
+                test_pack(packets, headret, 0, 0, 0);
             }
 
             /* page with the 255 segment limit */
@@ -418,157 +417,186 @@ namespace OggVorbisSharp
                     10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 
                     10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 50, -1
                 };
-                
-                int[][] headret = {head1_5, head2_5, head3_5, null};
+
+                int[][] headret = { head1_5, head2_5, head3_5, null };
 
                 Console.Write("testing max packet segments... ");
-                test_pack(packets,headret, 0, 0, 0);
+                test_pack(packets, headret, 0, 0, 0);
             }
 
             {
                 /* packet that overspans over an entire page */
-                int[] packets = {0, 100, 130049, 259, 255, -1};
-                int[][] headret = {head1_6, head2_6, head3_6, head4_6, null};
+                int[] packets = { 0, 100, 130049, 259, 255, -1 };
+                int[][] headret = { head1_6, head2_6, head3_6, head4_6, null };
 
                 Console.Write("testing very large packets... ");
-                test_pack(packets,headret,0,0,0);
+                test_pack(packets, headret, 0, 0, 0);
             }
 
             {
                 /* test for the libogg 1.1.1 resync in large continuation bug found by Josh Coalson)  */
-                int[] packets = {0, 100, 130049, 259, 255, -1};
-                int[][] headret = {head1_6, head2_6, head3_6, head4_6, null};
+                int[] packets = { 0, 100, 130049, 259, 255, -1 };
+                int[][] headret = { head1_6, head2_6, head3_6, head4_6, null };
 
                 Console.Write("testing continuation resync in very large packets... ");
-                test_pack(packets,headret,100,2,3);
+                test_pack(packets, headret, 100, 2, 3);
             }
-  
+
             {
                 /* term only page.  why not? */
-                int[] packets = {0, 100, 64770, -1};
-                int[][] headret = {head1_7, head2_7, head3_7, null};
+                int[] packets = { 0, 100, 64770, -1 };
+                int[][] headret = { head1_7, head2_7, head3_7, null };
 
                 Console.Write("testing zero data page (1 nil packet)... ");
-                test_pack(packets,headret,0,0,0);
+                test_pack(packets, headret, 0, 0, 0);
             }
 
             {
                 /* build a bunch of pages for testing */
-                byte *data = (byte *)Ogg._ogg_malloc(1024 * 1024);
-    
-                int[] pl = {0, 1, 1, 98, 4079, 1, 1, 2954, 2057, 76, 34, 912, 0, 234, 1000, 1000, 1000, 300, -1};
+                byte* data = (byte*)Ogg._ogg_malloc(1024 * 1024);
+
+                int[] pl = { 0, 1, 1, 98, 4079, 1, 1, 2954, 2057, 76, 34, 912, 0, 234, 1000, 1000, 1000, 300, -1 };
                 int inptr = 0;
 
                 Ogg.ogg_page[] og = new Ogg.ogg_page[5];
+                
+                for (int i = 0; i < 5; i++)
+                {
+                    og[i] = new Ogg.ogg_page();
+                }
+                
                 Ogg.ogg_stream_reset(ref os_en);
-        
-                for(int i = 0; pl[i] != -1; i++)
+                
+                for (int i = 0; pl[i] != -1; i++)
                 {
                     int len = pl[i];
 
                     Ogg.ogg_packet op = new Ogg.ogg_packet();
-                    
-                    op.packet = data + inptr; 
+
+                    op.packet = data + inptr;
                     op.bytes = len;
                     op.e_o_s = (pl[i + 1] < 0) ? 1 : 0;
                     op.granulepos = (i + 1) * 1000;
-            
-                    for (int j = 0; j < len; j++) {
+
+                    for (int j = 0; j < len; j++)
+                    {
                         data[inptr++] = (byte)(i + j);
                     }
-                    
+
                     Ogg.ogg_stream_packetin(ref os_en, ref op);
                 }
-                
+
                 Ogg._ogg_free(data);
-                
+
                 /* retrieve finished pages */
-                for(int i = 0; i < 5; i++)
+                for (int i = 0; i < 5; i++)
                 {
-                    if(Ogg.ogg_stream_pageout(ref os_en, ref og[i]) == 0)
+                    if (Ogg.ogg_stream_pageout(ref os_en, ref og[i]) == 0)
                     {
                         throw new Exception("Too few pages output building sync tests!");
                     }
-                    
+
                     copy_page(ref og[i]);
                 }
-                
+
                 /* Test lost pages on pagein/packeetout: no rollback */
                 {
                     Ogg.ogg_page temp = new Ogg.ogg_page();
                     Ogg.ogg_packet test = new Ogg.ogg_packet();
-                    
+
                     Console.Write("Testing loss of pages... ");
-                    
+
                     Ogg.ogg_sync_reset(ref oy);
                     Ogg.ogg_stream_reset(ref os_de);
-                    
-                    for (int i = 0; i < 5; i++) 
+
+                    for (int i = 0; i < 5; i++)
                     {
                         CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[i].header_len), og[i].header, og[i].header_len);
                         Ogg.ogg_sync_wrote(ref oy, og[i].header_len);
-                        
+
                         CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[i].body_len), og[i].body, og[i].body_len);
                         Ogg.ogg_sync_wrote(ref oy, og[i].body_len);
                     }
-                
+
                     Ogg.ogg_sync_pageout(ref oy, ref temp);
                     Ogg.ogg_stream_pagein(ref os_de, ref temp);
                     Ogg.ogg_sync_pageout(ref oy, ref temp);
                     Ogg.ogg_stream_pagein(ref os_de, ref temp);
                     Ogg.ogg_sync_pageout(ref oy, ref temp);
-                    
+
                     /* skip */
                     Ogg.ogg_sync_pageout(ref oy, ref temp);
                     Ogg.ogg_stream_pagein(ref os_de, ref temp);
-                    
+
                     /* do we get the expected results/packets? */
-                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1) {
+                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1)
+                    {
                         error();
-                    } else {
+                    }
+                    else
+                    {
                         check_packet(ref test, 0, 0, 0);
                     }
-                    
-                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1) {
+
+                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1)
+                    {
                         error();
-                    } else {
+                    }
+                    else
+                    {
                         check_packet(ref test, 1, 1, -1);
                     }
-                    
-                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1) {
+
+                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1)
+                    {
                         error();
-                    } else {
+                    }
+                    else
+                    {
                         check_packet(ref test, 1, 2, -1);
                     }
-                    
-                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1) {
+
+                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1)
+                    {
                         error();
-                    } else {
+                    }
+                    else
+                    {
                         check_packet(ref test, 98, 3, -1);
                     }
 
-                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1) {
+                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1)
+                    {
                         error();
-                    } else {
+                    }
+                    else
+                    {
                         check_packet(ref test, 4079, 4, 5000);
                     }
-                    
-                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != -1) {
+
+                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != -1)
+                    {
                         throw new Exception("Error : loss of page did not return error");
                     }
-                    
-                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1) {
+
+                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1)
+                    {
                         error();
-                    } else {
+                    }
+                    else
+                    {
                         check_packet(ref test, 76, 9, -1);
                     }
-                    
-                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1) {
+
+                    if (Ogg.ogg_stream_packetout(ref os_de, ref test) != 1)
+                    {
                         error();
-                    } else {
+                    }
+                    else
+                    {
                         check_packet(ref test, 34, 10, -1);
                     }
-                    
+
                     Console.WriteLine("ok.");
                 }
 
@@ -719,7 +747,7 @@ namespace OggVorbisSharp
                     }
 
                     /* Test fracional page inputs: incomplete fixed header */
-                    CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[1].header_len), (og[1].header + 3), 20);
+                    CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[1].header_len), og[1].header + 3, 20);
                     Ogg.ogg_sync_wrote(ref oy, 20);
 
                     if (Ogg.ogg_sync_pageout(ref oy, ref og_de) > 0)
@@ -728,7 +756,7 @@ namespace OggVorbisSharp
                     }
 
                     /* Test fractional page inputs: incomplete header */
-                    CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[1].header_len), (og[1].header + 23), 5);
+                    CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[1].header_len), og[1].header + 23, 5);
                     Ogg.ogg_sync_wrote(ref oy, 5);
 
                     if (Ogg.ogg_sync_pageout(ref oy, ref og_de) > 0)
@@ -737,7 +765,7 @@ namespace OggVorbisSharp
                     }
 
                     /* Test fractional page inputs: incomplete body */
-                    CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[1].header_len), (og[1].header + 28), og[1].header_len - 28);
+                    CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[1].header_len), og[1].header + 28, og[1].header_len - 28);
                     Ogg.ogg_sync_wrote(ref oy, og[1].header_len - 28);
 
                     if (Ogg.ogg_sync_pageout(ref oy, ref og_de) > 0)
@@ -790,7 +818,7 @@ namespace OggVorbisSharp
                         error();
                     }
 
-                    CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[1].header_len), (og[1].header + 20), og[1].header_len - 20);
+                    CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[1].header_len), og[1].header + 20, og[1].header_len - 20);
                     Ogg.ogg_sync_wrote(ref oy, og[1].header_len - 20);
 
                     CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[1].body_len), og[1].body, og[1].body_len);
@@ -839,7 +867,7 @@ namespace OggVorbisSharp
                         error();
                     }
 
-                    CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[2].header_len), (og[2].header + 20), og[2].header_len - 20);
+                    CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[2].header_len), og[2].header + 20, og[2].header_len - 20);
                     Ogg.ogg_sync_wrote(ref oy, og[2].header_len - 20);
 
                     CopyMemory(Ogg.ogg_sync_buffer(ref oy, og[2].body_len), og[2].body, og[2].body_len);
@@ -975,11 +1003,11 @@ namespace OggVorbisSharp
                 throw new Exception("Header length incorrect! (" + og.header_len + " != " + header[26] + 27 + ")");
             }
         }
-        
-        static void print_header(ref Ogg.ogg_page og) 
+
+        static void print_header(ref Ogg.ogg_page og)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            
+
             stringBuilder.AppendLine("HEADER:");
             stringBuilder.Append(" capture: ").Append(og.header[0]).Append(og.header[1]).Append(og.header[2]).Append(og.header[3]);
             stringBuilder.Append(" version: ").Append(og.header[4]);
@@ -988,42 +1016,43 @@ namespace OggVorbisSharp
             stringBuilder.Append(" serialno: ").Append((og.header[17] << 24) | (og.header[16] << 16) | (og.header[15] << 8) | og.header[14]);
             stringBuilder.Append(" pageno: ").Append((og.header[21] << 24) | (og.header[20] << 16) | (og.header[19] << 8) | og.header[18]).AppendLine();
             stringBuilder.Append(" checksum: ").Append(og.header[22]).Append(og.header[23]).Append(og.header[24]).Append(og.header[25]).Append(og.header[26]);
-            
-            for(int j = 27; j < og.header_len; j++) {
+
+            for (int j = 27; j < og.header_len; j++)
+            {
                 stringBuilder.Append(og.header[j]);
             }
-            
+
             stringBuilder.AppendLine().AppendLine();
-            
+
             Console.WriteLine(stringBuilder.ToString());
         }
-            
+
         static void copy_page(ref Ogg.ogg_page og)
         {
             IntPtr temp = Marshal.AllocHGlobal(og.header_len);
-            CopyMemory(temp.ToPointer(), og.header, og.header_len);
-            og.header = (byte *)temp.ToPointer();
+            CopyMemory((void *)temp, og.header, og.header_len);
+            og.header = (byte*)temp.ToPointer();
 
             temp = Marshal.AllocHGlobal(og.body_len);
-            CopyMemory(temp.ToPointer(), og.body, og.body_len);
-            og.body = (byte *)temp.ToPointer();
+            CopyMemory((void *)temp, og.body, og.body_len);
+            og.body = (byte*)temp.ToPointer();
         }
-        
+
         static void free_page(ref Ogg.ogg_page og)
         {
-            Ogg._ogg_free (og.header);
-            Ogg._ogg_free (og.body);
-        }            
-        
-        static void error() 
+            Ogg._ogg_free(og.header);
+            Ogg._ogg_free(og.body);
+        }
+
+        static void error()
         {
             throw new Exception("Error!");
         }
-        
+
         static void test_pack(int[] pl, int[][] headers, int byteskip, int pageskip, int packetskip)
         {
-            byte *data = (byte *)Ogg._ogg_malloc(1024 * 1024); /* for scripted test cases only */
-            
+            byte* data = (byte*)Ogg._ogg_malloc(1024 * 1024); /* for scripted test cases only */
+
             int inptr = 0;
             int outptr = 0;
             int deptr = 0;
@@ -1035,196 +1064,215 @@ namespace OggVorbisSharp
             int eosflag = 0;
             int bosflag = 0;
             int byteskipcount = 0;
-            
+
             Ogg.ogg_stream_reset(ref os_en);
             Ogg.ogg_stream_reset(ref os_de);
             Ogg.ogg_sync_reset(ref oy);
-            
-            for (packets = 0; packets < packetskip; packets++) {
+
+            for (packets = 0; packets < packetskip; packets++)
+            {
                 depacket += pl[packets];
             }
-            
-            for (packets = 0; ; packets++) {
+
+            for (packets = 0; ; packets++)
+            {
                 if (pl[packets] == -1) break;
             }
-            
-            for (int i = 0; i < packets; i++) {
+
+            for (int i = 0; i < packets; i++)
+            {
                 /* construct a test packet */
                 Ogg.ogg_packet op = new Ogg.ogg_packet();
                 int len = pl[i];
-                
+
                 op.packet = data + inptr;
                 op.bytes = len;
                 op.e_o_s = (pl[i + 1] < 0) ? 1 : 0;
                 op.granulepos = granule_pos;
-                
+
                 granule_pos += 1024;
-                
-                for (int j = 0; j < len; j++) {
+
+                for (int j = 0; j < len; j++)
+                {
                     data[inptr++] = (byte)(i + j);
                 }
-                
+
                 /* submit the test packet */
                 Ogg.ogg_stream_packetin(ref os_en, ref op);
-                    
+
                 /* retrive any finished packet */
                 {
-                    Ogg.ogg_page og = default(Ogg.ogg_page);
-                    
-                    while (Ogg.ogg_stream_pageout(ref os_en, ref og) != 0) 
+                    Ogg.ogg_page og = new Ogg.ogg_page();
+
+                    while (Ogg.ogg_stream_pageout(ref os_en, ref og) != 0)
                     {
                         /* We have a page. Check it carefully */
                         Console.Write(pageno + ", ");
-                        
-                        if (headers[pageno] == null) {
+
+                        if (headers[pageno] == null)
+                        {
                             throw new Exception("coded too many pages.");
                         }
-                        
+
                         check_page(data + outptr, ref headers[pageno], ref og);
-                        
+
                         outptr += og.body_len;
                         pageno++;
-                        
-                        if (pageskip != 0) 
+
+                        if (pageskip != 0)
                         {
                             bosflag = 1;
                             pageskip--;
                             deptr += og.body_len;
                         }
-                        
+
                         /* have a complete page; submit it to sync/decode */
                         {
                             Ogg.ogg_page og_de = new Ogg.ogg_page();
                             Ogg.ogg_packet op_de = new Ogg.ogg_packet();
                             Ogg.ogg_packet op_de2 = new Ogg.ogg_packet();
-                            
+
                             byte *buf = Ogg.ogg_sync_buffer(ref oy, og.header_len + og.body_len);
                             byte *next = buf;
-                            
+
                             byteskipcount += og.header_len;
-                            
+
                             if (byteskipcount > byteskip)
                             {
                                 CopyMemory(next, og.header, byteskipcount - byteskip);
-                                next += byteskipcount - byteskip;
+                                next = next + (byteskipcount - byteskip);
                                 byteskipcount = byteskip;
                             }
-                            
+
                             byteskipcount += og.body_len;
-                            
+
                             if (byteskipcount > byteskip)
                             {
                                 CopyMemory(next, og.body, byteskipcount - byteskip);
-                                next += byteskipcount - byteskip;
+                                next = next + (byteskipcount - byteskip);
                                 byteskipcount = byteskip;
                             }
-                            
+
                             Ogg.ogg_sync_wrote(ref oy, (int)(next - buf));
-                            
-                            while(true)
+
+                            while (true)
                             {
                                 int ret = Ogg.ogg_sync_pageout(ref oy, ref og_de);
-                                
-                                if (ret == 0) {
+
+                                if (ret == 0)
+                                {
                                     break;
                                 }
-                                
-                                if (ret < 0) {
+
+                                if (ret < 0)
+                                {
                                     continue;
                                 }
-                                
+
                                 /* got a page. Happy happy. Verify that it's good. */
                                 Console.Write("(" + pageout + "), ");
-                                
+
                                 check_page(data + deptr, ref headers[pageout], ref og_de);
                                 deptr += og_de.body_len;
                                 pageout++;
-                                
+
                                 /* submit it to deconstitution */
                                 Ogg.ogg_stream_pagein(ref os_de, ref og_de);
-                                
+
                                 /* packets out? */
-                                while(Ogg.ogg_stream_packetpeek(ref os_de, ref op_de2) > 0)
+                                while (Ogg.ogg_stream_packetpeek(ref os_de, ref op_de2) > 0)
                                 {
                                     Ogg.ogg_stream_packetpeek(ref os_de);
                                     Ogg.ogg_stream_packetout(ref os_de, ref op_de); /* just catching them all */
-                                    
+
                                     /* verify peek and out match */
                                     if
                                     (
-                                        op_de.b_o_s      != op_de2.b_o_s ||
-                                        op_de.bytes      != op_de2.bytes ||
-                                        op_de.e_o_s      != op_de2.e_o_s ||
+                                        op_de.b_o_s != op_de2.b_o_s ||
+                                        op_de.bytes != op_de2.bytes ||
+                                        op_de.e_o_s != op_de2.e_o_s ||
                                         op_de.granulepos != op_de2.granulepos ||
-                                        op_de.packet     != op_de2.packet ||
-                                        op_de.packetno   != op_de2.packetno
+                                        op_de.packet != op_de2.packet ||
+                                        op_de.packetno != op_de2.packetno
                                     )
                                     {
                                         throw new Exception("packetout != packetpeek! pos=" + depacket);
                                     }
-                                    
+
                                     /* verify the packet! */
                                     /* check data */
-                                    for(int j = 0; j < op_de.bytes; j++) {
-                                        if ((data + depacket)[j] != op_de.packet[j]) {
+                                    for (int j = 0; j < op_de.bytes; j++)
+                                    {
+                                        if ((data + depacket)[j] != op_de.packet[j])
+                                        {
                                             throw new Exception("packet data mismatch in decode! pos=" + depacket);
                                         }
                                     }
-                                    
+
                                     /* check bos flag */
-                                    if (bosflag == 0 && op_de.b_o_s == 0) {
+                                    if (bosflag == 0 && op_de.b_o_s == 0)
+                                    {
                                         throw new Exception("b_o_s flag incorrectly set on packet!");
                                     }
-                                    
+
                                     bosflag = 1;
                                     depacket += op_de.bytes;
-                                    
+
                                     /* check eos flag */
-                                    if (eosflag != 0){
+                                    if (eosflag != 0)
+                                    {
                                         throw new Exception("Multiple decoded packets with eos flag!");
                                     }
-                                    
-                                    if (op_de.e_o_s != 0) {
+
+                                    if (op_de.e_o_s != 0)
+                                    {
                                         eosflag = 1;
                                     }
-                                    
+
                                     /* check granulepos flag */
-                                    if (op_de.granulepos != -1) {
+                                    if (op_de.granulepos != -1)
+                                    {
                                         Console.Write(" granule:" + op_de.granulepos + " ");
                                     }
                                 }
                             }
-                        }   
+                        }
                     }
                 }
             }
-            
+
             Ogg._ogg_free(data);
-            
-            if (headers[pageno] != null) {
+
+            if (headers[pageno] != null)
+            {
                 throw new Exception("did not write last page!");
             }
-            
-            if (headers[pageout] != null) {
+
+            if (headers[pageout] != null)
+            {
                 throw new Exception("did not decode last page!");
             }
-            
-            if (inptr != outptr) {
+
+            if (inptr != outptr)
+            {
                 throw new Exception("encoded page data incomplete");
             }
-            
-            if (inptr != deptr) {
+
+            if (inptr != deptr)
+            {
                 throw new Exception("decoded page data incomplete");
             }
-            
-            if (inptr != depacket) {
+
+            if (inptr != depacket)
+            {
                 throw new Exception("decoded packet data incomplete");
             }
-            
-            if (eosflag == 0) {
+
+            if (eosflag == 0)
+            {
                 throw new Exception("Never got a packet with EOS set!");
             }
-            
+
             Console.WriteLine("ok.");
         }
     }

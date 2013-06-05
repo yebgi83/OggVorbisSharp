@@ -32,13 +32,13 @@ namespace OggVorbisSharp
     static public unsafe partial class Ogg
     {
         [DllImport("kernel32.dll", EntryPoint = "RtlMoveMemory")]
-        static private extern void CopyMemory(IntPtr dest, IntPtr source, int length);
-        
+        static private extern void CopyMemory(void* dest, void* source, int length);
+
         [DllImport("kernel32.dll", EntryPoint = "RtlZeroMemory")]
-        static private extern void ZeroMemory(IntPtr dest, int length);
+        static private extern void ZeroMemory(void* dest, int length);
     }
 
-    // Delegate
+    // Delegates
     static public unsafe partial class Ogg
     {
         public delegate void ogg_write_delegate(ref oggpack_buffer b, uint value, int bits);
@@ -53,7 +53,7 @@ namespace OggVorbisSharp
     // Types
     static public unsafe partial class Ogg
     {
-        public class ogg_iovec_t
+        public struct ogg_iovec_t
         {
             public void *iov_base;
             public int iov_len;
@@ -102,7 +102,7 @@ namespace OggVorbisSharp
             public int e_o_s;
             public int b_o_s;
             
-            public int serailno;
+            public int serialno;
             public int pageno;
             
             public long packetno;
@@ -210,27 +210,40 @@ namespace OggVorbisSharp
     // Common
     static public unsafe partial class Ogg
     {
-        static public void *_ogg_malloc(int bytes)
+        static public void* _ogg_malloc(int bytes)
         {
             return Marshal.AllocHGlobal(bytes).ToPointer();
         }
-    
-        static public void *_ogg_calloc(int num, int size)
-        {
-            void *ret = Marshal.AllocHGlobal(num * size).ToPointer();
 
-            ZeroMemory((IntPtr)ret, num * size);
+        static public void* _ogg_calloc(int num, int size)
+        {
+            void* ret = Marshal.AllocHGlobal(num * size).ToPointer();
+
+            ZeroMemory(ret, num * size);
             return ret;
         }
-            
-        static public void *_ogg_realloc(IntPtr pv, int bytes)
+        
+        static public T[] _ogg_calloc_managed<T>(int num) where T : new()
         {
-            return Marshal.ReAllocHGlobal(pv, (IntPtr)bytes).ToPointer();
+            T[] ret = new T[num];
+            
+            for (int i = 0; i < num; i++)
+            {
+                ret[i] = new T();
+            }
+            
+            return ret;
         }
         
-        static public void _ogg_free(void *ptr)
+        static public void* _ogg_realloc(void* pv, int bytes)
         {
-            if (ptr != null) {
+            return Marshal.ReAllocHGlobal((IntPtr)pv, (IntPtr)bytes).ToPointer();
+        }
+
+        static public void _ogg_free(void* ptr)
+        {
+            if (ptr != null)
+            {
                 Marshal.FreeHGlobal((IntPtr)ptr);
             }
         }

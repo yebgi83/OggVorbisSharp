@@ -56,9 +56,9 @@ namespace OggVorbisSharp
             
             /* local storage, only used on the encoding side.  This way the application does not need to worry about freeing some packets'
               memory and not others'; packet storage is always tracked. Cleared next call to a _dsp_ function */
-            public IntPtr header; // byte *header;
-            public IntPtr header1; // byte *header1;
-            public IntPtr header2; // byte *header2;
+            public byte* header;
+            public byte* header1; 
+            public byte* header2; 
             
             public bitrate_manager_state bms;
 

@@ -100,7 +100,7 @@ namespace OggVorbisSharp
                 return -1;
             }
             
-            os.serailno = serialno;
+            os.serialno = serialno;
             return 0;
         }
         
@@ -162,7 +162,7 @@ namespace OggVorbisSharp
             os.b_o_s = 0;
             os.e_o_s = 0;
             
-            os.serailno = 0;
+            os.serialno = 0;
             os.pageno = 0;
             
             os.packetno = 0;
@@ -182,7 +182,7 @@ namespace OggVorbisSharp
         {
             if (os.body_storage <= os.body_fill + needed)
             {
-                void *ret = _ogg_realloc((IntPtr)os.body_data, (os.body_storage + needed + 1024) * sizeof(byte));
+                void *ret = _ogg_realloc(os.body_data, (os.body_storage + needed + 1024) * sizeof(byte));
                 
                 if (ret == null) {
                     ogg_stream_clear(ref os);
@@ -200,7 +200,7 @@ namespace OggVorbisSharp
         {
             if (os.lacing_storage <= os.lacing_fill + needed)
             {
-                void *ret = _ogg_realloc((IntPtr)os.lacing_vals, (os.lacing_storage + needed + 32) * sizeof(int));
+                void *ret = _ogg_realloc(os.lacing_vals, (os.lacing_storage + needed + 32) * sizeof(int));
 
                 if (ret == null) {
                     ogg_stream_clear(ref os);
@@ -208,7 +208,7 @@ namespace OggVorbisSharp
                 }
                 
                 os.lacing_vals = (int *)ret;
-                ret = _ogg_realloc((IntPtr)os.granule_vals, (os.lacing_storage + needed + 32) * sizeof(long));
+                ret = _ogg_realloc(os.granule_vals, (os.lacing_storage + needed + 32) * sizeof(long));
                                 
                 if (ret == null) {
                     ogg_stream_clear(ref os);
@@ -252,63 +252,69 @@ namespace OggVorbisSharp
         static public int ogg_stream_iovecin(ref ogg_stream_state os, ref ogg_iovec_t[] iov, int count, int e_o_s, long granulepos)
         {
             int bytes = 0;
-            int lacing_vals; 
+            int lacing_vals;
             int i;
-            
-            if (ogg_stream_check(ref os) != 0) {
+
+            if (ogg_stream_check(ref os) != 0)
+            {
                 return -1;
             }
-            
-            for (i = 0; i < count; ++i) {
+
+            for (i = 0; i < count; ++i)
+            {
                 bytes += iov[i].iov_len;
             }
-             
+
             lacing_vals = bytes / 255 + 1;
-             
-            if (os.body_returned > 0) 
-            { 
+
+            if (os.body_returned > 0)
+            {
                 /* advance packet data according to the body_returned pointer. We had to keep it around to return a pointer into the buffer last call */
                 os.body_fill -= os.body_returned;
-                
-                if (os.body_fill > 0) {
-                    CopyMemory((IntPtr)os.body_data, (IntPtr)(os.body_data + os.body_returned), os.body_fill);
+
+                if (os.body_fill > 0)
+                {
+                    CopyMemory(os.body_data, os.body_data + os.body_returned, os.body_fill);
                 }
-                
+
                 os.body_returned = 0;
             }
-            
+
             /* make sure we have the buffer storage */
-            if (_os_body_expand(ref os, bytes) != 0 || _os_lacing_expand(ref os, lacing_vals) != 0) {
+            if (_os_body_expand(ref os, bytes) != 0 || _os_lacing_expand(ref os, lacing_vals) != 0)
+            {
                 return -1;
             }
-            
+
             /* Copy in the submitted packet.  Yes, the copy is a waste; this is the liability of overly clean abstraction for the time being. It will actually be fairly easy to eliminate the extra copy in the future */
-            for (i = 0; i < count; i++) {
-                CopyMemory((IntPtr)(os.body_data + os.body_fill), (IntPtr)iov[i].iov_base, iov[i].iov_len);
+            for (i = 0; i < count; i++)
+            {
+                CopyMemory(os.body_data + os.body_fill, iov[i].iov_base, iov[i].iov_len);
                 os.body_fill += (int)iov[i].iov_len;
             }
-            
+
             /* Store lacing vals for this packet */
-            for (i = 0; i < lacing_vals - 1; i++) {
+            for (i = 0; i < lacing_vals - 1; i++)
+            {
                 os.lacing_vals[os.lacing_fill + i] = 255;
                 os.granule_vals[os.lacing_fill + i] = os.granulepos;
             }
-            
+
             os.lacing_vals[os.lacing_fill + i] = bytes % 255;
-            os.granulepos = granulepos;
-            os.granule_vals[os.lacing_fill + i] = granulepos;
-            
+            os.granulepos = os.granule_vals[os.lacing_fill + i] = granulepos;
+
             /* flag the first segment as the beginning of the packet */
             os.lacing_vals[os.lacing_fill] |= 0x100;
             os.lacing_fill += lacing_vals;
-            
+
             /* for the sake of completeness */
             os.packetno++;
-            
-            if (e_o_s != 0) {
+
+            if (e_o_s != 0)
+            {
                 os.e_o_s = 1;
             }
-            
+
             return 0;
         }
         
@@ -424,7 +430,7 @@ namespace OggVorbisSharp
             
             /* 32 bits of stream serial number */
             {
-                long serialno = os.serailno;
+                long serialno = os.serialno;
                 
                 for (i = 14; i < 18; i++) {
                     os.header[i] = (byte)(serialno & 0xff);
@@ -468,8 +474,8 @@ namespace OggVorbisSharp
             
             /* advance the lacing data and set the body_returned pointer */
             os.lacing_fill -= vals;
-            CopyMemory((IntPtr)os.lacing_vals, (IntPtr)(os.lacing_vals + vals), os.lacing_fill * sizeof(int));
-            CopyMemory((IntPtr)os.granule_vals, (IntPtr)(os.granule_vals + vals), os.lacing_fill * sizeof(long));
+            CopyMemory(os.lacing_vals, os.lacing_vals + vals, os.lacing_fill * sizeof(int));
+            CopyMemory(os.granule_vals, os.granule_vals + vals, os.lacing_fill * sizeof(long));
             os.body_returned += bytes;
             
             /* calculate the checksum */
@@ -608,38 +614,45 @@ namespace OggVorbisSharp
             }
         }
         
-        static public IntPtr ogg_sync_buffer(ref ogg_sync_state oy, int size)
+        static public byte *ogg_sync_buffer(ref ogg_sync_state oy, int size)
         {
-            if (ogg_sync_check(ref oy) != 0) {
-                return IntPtr.Zero;
+            if (ogg_sync_check(ref oy) != 0)
+            {
+                return null;
             }
-            
+
             /* first, clear out any space that has been previously returned */
-            if (oy.returned > 0) {
+            if (oy.returned > 0)
+            {
                 oy.fill -= oy.returned;
-                
-                if (oy.fill > 0) {
-                    CopyMemory((IntPtr)oy.data, (IntPtr)(oy.data + oy.returned), oy.fill);
+
+                if (oy.fill > 0)
+                {
+                    CopyMemory(oy.data, oy.data + oy.returned, oy.fill);
                 }
-                
+
                 oy.returned = 0;
             }
-            
-            if (size > oy.storage - oy.fill) {
+
+            if (size > oy.storage - oy.fill)
+            {
                 /* We need to extend the internal buffer */
                 int newsize = size + oy.fill + 4096; /* an extra page to be nice */
-                
-                if (oy.data != null) {
-                    oy.data = (byte *)_ogg_realloc((IntPtr)oy.data, newsize);
-                } else {
-                    oy.data = (byte *)_ogg_malloc(newsize);
+
+                if (oy.data != null)
+                {
+                    oy.data = (byte*)_ogg_realloc(oy.data, newsize);
                 }
-                
+                else
+                {
+                    oy.data = (byte*)_ogg_malloc(newsize);
+                }
+
                 oy.storage = newsize;
             }
-    
+
             /* expose a segment at least as large as requested at the fill mark */
-            return (IntPtr)(oy.data + oy.fill); 
+            return oy.data + oy.fill; 
         }
         
         static public int ogg_sync_wrote(ref ogg_sync_state oy, int bytes)
@@ -655,135 +668,138 @@ namespace OggVorbisSharp
             oy.fill += bytes;
             return 0;
         }
-        
+
         static public int ogg_sync_pageseek(ref ogg_sync_state oy, ref ogg_page og)
         {
-            bool isSyncFailed = false;
-            
-            byte *page = oy.data + oy.returned;
-            byte *next = null;
-            
+            byte* page = oy.data + oy.returned;
+            byte* next = null;
+
             int bytes = oy.fill - oy.returned;
-            
-            if (ogg_sync_check(ref oy) != 0) {
+
+            if (ogg_sync_check(ref oy) != 0)
+            {
                 return 0;
             }
-            
-            if (oy.headerbytes == 0) 
+
+            if (oy.headerbytes == 0)
             {
                 int headerbytes;
-                
-                if (bytes < 27) {
+
+                if (bytes < 27)
+                {
                     return 0;
                 }
-                
-                if 
+
+                if
                 (
-                    page[0] != 'O' || 
-                    page[1] != 'g' || 
-                    page[2] != 'g' || 
+                    page[0] != 'O' ||
+                    page[1] != 'g' ||
+                    page[2] != 'g' ||
                     page[3] != 'S'
                 )
-                { 
-                    isSyncFailed = true;
+                {
+                    goto sync_fail;
                 }
                 else
                 {
                     headerbytes = page[26] + 27;
-                    
-                    if (bytes < headerbytes) {
+
+                    if (bytes < headerbytes)
+                    {
                         return 0;
                     }
-                    
-                    for(int i = 0; i < page[26]; i++) {
+
+                    for (int i = 0; i < page[26]; i++)
+                    {
                         oy.bodybytes += page[27 + i];
                     }
-                    
+
                     oy.headerbytes = headerbytes;
                 }
             }
-            
-            if (isSyncFailed == false)
+
+            if (oy.bodybytes + oy.headerbytes > bytes)
             {
-                if (oy.bodybytes + oy.headerbytes > bytes) {
-                    return 0;
-                }
-                
-                /* The whole test page is buffered. Verify the checksum */
-                {
-                    byte[] chksum = new byte[4];
-                    
-                    ogg_page log = new ogg_page();
-                    
-                    /* Grab the checksum bytes, set the header field to zero */
-                    Marshal.Copy((IntPtr)(page + 22), chksum, 0, 4);
-                    ZeroMemory((IntPtr)(page + 22), 4);
-                                            
-                    /* set up a temp page struct and recompute the checksum */
-                    log.header = page;
-                    log.header_len = oy.headerbytes;
-                    log.body = page + oy.headerbytes;
-                    log.body_len = oy.bodybytes;
-                    
-                    ogg_page_checksum_set(ref log);
-                    
-                    /* Compare */
-                    if
-                    (
-                        chksum[0] != page[22] ||
-                        chksum[1] != page[23] ||
-                        chksum[2] != page[24] ||
-                        chksum[3] != page[25]
-                    )
-                    {
-                        /* D'oh.  Mismatch! Corrupt page (or miscapture and not a page at all) */
-                        /* replace the computed checksum with the one actually read in */
-                        Marshal.Copy(chksum, 0, (IntPtr)(page + 22), 4);
-                        isSyncFailed = true;
-                    }
-                }
-                
-                /* yes, have a whole page all ready to go */
-                if (isSyncFailed == false)
-                {
-                    IntPtr _page = (IntPtr)(oy.data + oy.returned);
-                 
-                    bytes = oy.headerbytes + oy.bodybytes;
-                
-                    if (og != null)
-                    {
-                        og.header = (byte *)_page;
-                        og.header_len = oy.headerbytes;
-                        og.body = (byte *)(_page.ToInt32() + oy.headerbytes);
-                        og.body_len = oy.bodybytes;
-                    }
-                    
-                    oy.unsynced = 0;
-                    oy.returned += bytes;
-                    oy.headerbytes = 0;
-                    oy.bodybytes = 0;
-                    
-                    return bytes;
-                }                
+                return 0;
             }
-            
+
+            /* The whole test page is buffered. Verify the checksum */
+            {
+                byte[] chksum = new byte[4];
+
+                ogg_page log = new ogg_page();
+
+                /* Grab the checksum bytes, set the header field to zero */
+                Marshal.Copy((IntPtr)(page + 22), chksum, 0, 4);
+                ZeroMemory(page + 22, 4);
+
+                /* set up a temp page struct and recompute the checksum */
+                log.header = page;
+                log.header_len = oy.headerbytes;
+                log.body = page + oy.headerbytes;
+                log.body_len = oy.bodybytes;
+
+                ogg_page_checksum_set(ref log);
+
+                /* Compare */
+                if
+                (
+                    chksum[0] != page[22] ||
+                    chksum[1] != page[23] ||
+                    chksum[2] != page[24] ||
+                    chksum[3] != page[25]
+                )
+                {
+                    /* D'oh.  Mismatch! Corrupt page (or miscapture and not a page at all) */
+                    /* replace the computed checksum with the one actually read in */
+                    Marshal.Copy(chksum, 0, (IntPtr)(page + 22), 4);
+
+                    /* Bad checksum. Lose sync */
+                    goto sync_fail;
+                }
+            }
+
+            /* yes, have a whole page all ready to go */
+            {
+                byte* _page = oy.data + oy.returned;
+
+                bytes = oy.headerbytes + oy.bodybytes;
+
+                if (og != null)
+                {
+                    og.header = _page;
+                    og.header_len = oy.headerbytes;
+                    og.body = _page + oy.headerbytes;
+                    og.body_len = oy.bodybytes;
+                }
+
+                oy.unsynced = 0;
+                oy.returned += bytes;
+                oy.headerbytes = 0;
+                oy.bodybytes = 0;
+
+                return bytes;
+            }
+
+        sync_fail:
             oy.headerbytes = 0;
             oy.bodybytes = 0;
-            
+
             for (int i = 1; i < bytes; i++)
             {
-                if (page[i] == 'O') {
-                    next = (byte *)(page  + i);
+                if (page[i] == 'O')
+                {
+                    next = (byte*)(page + i);
                     break;
                 }
             }
-            
-            if (next == null) {
+
+            if (next == null)
+            {
                 next = oy.data + oy.fill;
             }
-            
+
             oy.returned = (int)(next - oy.data);
-            
             return ((int)-(next - page));
         }
         
@@ -862,22 +878,25 @@ namespace OggVorbisSharp
                 if (br > 0)
                 {
                     os.body_fill -= br;
-                    
-                    if (os.body_fill > 0) {
-                        CopyMemory((IntPtr)os.body_data, (IntPtr)(os.body_data + br), os.body_fill);
+
+                    if (os.body_fill > 0)
+                    {
+                        CopyMemory(os.body_data, os.body_data + br, os.body_fill);
                     }
-                    
+
                     os.body_returned = 0;
                 }
-                
+
                 /* segment table */
-                if (lr > 0) 
+                if (lr > 0)
                 {
-                    if (os.lacing_fill - lr > 0) {
-                        CopyMemory((IntPtr)os.lacing_vals, (IntPtr)(os.lacing_vals + lr), (os.lacing_fill - lr) * sizeof(int));
-                    } 
-                    else {
-                        CopyMemory((IntPtr)os.granule_vals, (IntPtr)(os.granule_vals + lr), (os.lacing_fill - lr) * sizeof(long));
+                    if (os.lacing_fill - lr > 0)
+                    {
+                        CopyMemory(os.lacing_vals, os.lacing_vals + lr, (os.lacing_fill - lr) * sizeof(int));
+                    }
+                    else
+                    {
+                        CopyMemory(os.granule_vals, os.granule_vals + lr, (os.lacing_fill - lr) * sizeof(long));
                     }
                 }
                 
@@ -887,7 +906,7 @@ namespace OggVorbisSharp
             }
             
             /* check the serial number */
-            if (serialno != os.serailno) {
+            if (serialno != os.serialno) {
                 return -1;
             }
             
@@ -945,7 +964,7 @@ namespace OggVorbisSharp
                     return -1;
                 }
                 
-                CopyMemory((IntPtr)(os.body_data + os.body_fill), (IntPtr)body, bodysize);
+                CopyMemory(os.body_data + os.body_fill, body, bodysize);
                 os.body_fill += bodysize;
             }
             
@@ -1033,14 +1052,14 @@ namespace OggVorbisSharp
             return 0;
         }
         
-        static public int ogg_stream_reset_serailno(ref ogg_stream_state os, int serialno)
+        static public int ogg_stream_reset_serialno(ref ogg_stream_state os, int serialno)
         {
             if (ogg_stream_check(ref os) != 0) {
                 return -1;
             }
             
             ogg_stream_reset(ref os);
-            os.serailno = serialno;
+            os.serialno = serialno;
             
             return 0;
         }
@@ -1110,22 +1129,38 @@ namespace OggVorbisSharp
         
         static public int ogg_stream_packetout(ref ogg_stream_state os, ref ogg_packet op) 
         {
-            if (ogg_stream_check(ref os) != 0 ) {
+            if (ogg_stream_check(ref os) != 0)
+            {
                 return 0;
             }
-            else {
+            else
+            {
                 return _packetout(ref os, ref op, 1);
             }
         }
         
+        static public int ogg_stream_packetout(ref ogg_stream_state os)
+        {
+            ogg_packet op_null = null;
+            return ogg_stream_packetout(ref os, ref op_null);
+        }
+        
         static public int ogg_stream_packetpeek(ref ogg_stream_state os, ref ogg_packet op)
         {
-            if (ogg_stream_check(ref os) != 0) {
+            if (ogg_stream_check(ref os) != 0)
+            {
                 return 0;
             }
-            else {
-                return _packetout(ref os, ref op , 0);
+            else
+            {
+                return _packetout(ref os, ref op, 0);
             }
+        }
+        
+        static public int ogg_stream_packetpeek(ref ogg_stream_state os)
+        {
+            ogg_packet op_null = null;
+            return ogg_stream_packetpeek(ref os, ref op_null);
         }
         
         static public void ogg_packet_clear(ref ogg_packet op)

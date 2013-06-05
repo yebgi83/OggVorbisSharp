@@ -1286,7 +1286,7 @@ namespace OggVorbisSharp
                 
                 for (j = 0; j < count; j++)
                 {
-                    int k = (int)((float *)sort[j].ToPointer() - q);
+                    int k = (int)((float *)sort[j] - q);
 
                     if (acc >= vi.normal_thresh)
                     {
@@ -1370,10 +1370,10 @@ namespace OggVorbisSharp
                 int k, j, jn = (partition > n - i) ? n - i : partition;
                 int step, track = 0;
 
-                CopyMemory((IntPtr)nz, (IntPtr)nonzero, sizeof(int) * ch);
+                CopyMemory(nz, nonzero, sizeof(int) * ch);
 
                 /* prefill */
-                ZeroMemory((IntPtr)flag[0], ch * partition * sizeof(int));
+                ZeroMemory(flag[0], ch * partition * sizeof(int));
 
                 for (k = 0; k < ch; k++)
                 {

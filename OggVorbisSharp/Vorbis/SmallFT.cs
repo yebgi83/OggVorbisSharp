@@ -39,7 +39,7 @@ namespace OggVorbisSharp
     // Types
     static public unsafe partial class Vorbis
     {
-        class drft_lookup
+        struct drft_lookup
         {
             public int n;
             public float* trigcache;

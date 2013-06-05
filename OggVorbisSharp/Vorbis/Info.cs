@@ -146,7 +146,7 @@ namespace OggVorbisSharp
 
         static public int vorbis_comment_clear(ref vorbis_comment vc)
         {
-            if (vc != null)
+            if (vc == null)
             {
                 return 1;
             }
@@ -157,6 +157,16 @@ namespace OggVorbisSharp
             vc.vendor = null;
             return 0;
         }
+        
+        /* blocksize 0 is guaranteed to be short, 1 is guaranteed to be long. They may be equal, but short will never ge greater than long */
+        
+        static public int vorbis_info_blocksize(ref vorbis_info vi, int zo)
+        {
+            codec_setup_info ci = vi.codec_setup as codec_setup_info;
+            return (ci != null) ? ci.blocksizes[zo] : -1;
+        }
+        
+        /* used by synthesis, which has a full, alloced vi */
         
         static public int vorbis_info_init(ref vorbis_info vi) 
         {
@@ -190,122 +200,137 @@ namespace OggVorbisSharp
         }
 
         /* Header packing/unpacking */
-        
-        static public int _vorbis_unpack_info(ref vorbis_info vi, ref Ogg.oggpack_buffer opb) 
+
+        static public int _vorbis_unpack_info(ref vorbis_info vi, ref Ogg.oggpack_buffer opb)
         {
             codec_setup_info ci = vi.codec_setup as codec_setup_info;
-           
-            if (ci == null) {
+
+            if (ci == null)
+            {
                 return OV_EFAULT;
             }
-            
+
             vi.version = Ogg.oggpack_read(ref opb, 32);
-            
-            if (vi.version != 0) {
+
+            if (vi.version != 0)
+            {
                 return OV_EVERSION;
             }
-                
+
             vi.channels = Ogg.oggpack_read(ref opb, 8);
             vi.rate = Ogg.oggpack_read(ref opb, 32);
-            
+
             vi.bitrate_upper = Ogg.oggpack_read(ref opb, 32);
             vi.bitrate_nominal = Ogg.oggpack_read(ref opb, 32);
             vi.bitrate_lower = Ogg.oggpack_read(ref opb, 32);
-            
+
             ci.blocksizes[0] = 1 << Ogg.oggpack_read(ref opb, 4);
             ci.blocksizes[1] = 1 << Ogg.oggpack_read(ref opb, 4);
-            
-            if (vi.rate < 1) {
+
+            if (vi.rate < 1)
+            {
                 goto err_out;
             }
-            
-            if (vi.channels < 1) {
+
+            if (vi.channels < 1)
+            {
                 goto err_out;
             }
-            
-            if (ci.blocksizes[0] < 64) {
+
+            if (ci.blocksizes[0] < 64)
+            {
                 goto err_out;
             }
-            
-            if (ci.blocksizes[1] < ci.blocksizes[0]) {
+
+            if (ci.blocksizes[1] < ci.blocksizes[0])
+            {
                 goto err_out;
             }
-            
-            if (ci.blocksizes[1] > 8192) {
+
+            if (ci.blocksizes[1] > 8192)
+            {
                 goto err_out;
             }
-            
-            if (Ogg.oggpack_read(ref opb, 1) != 1) {
+
+            if (Ogg.oggpack_read(ref opb, 1) != 1)
+            {
                 goto err_out; /* EOP check */
             }
-            
+
             return 0;
-        
+
         err_out:
             vorbis_info_clear(ref vi);
             return OV_EBADHEADER;
         }
-        
+
         static int _vorbis_unpack_comment(ref vorbis_comment vc, ref Ogg.oggpack_buffer opb)
         {
             int i;
             int vendorlen = Ogg.oggpack_read(ref opb, 32);
-            
-            if (vendorlen < 0) {
+
+            if (vendorlen < 0)
+            {
                 goto err_out;
             }
-            
-            if (vendorlen > opb.storage - 8) {
+
+            if (vendorlen > opb.storage - 8)
+            {
                 goto err_out;
             }
-            
-            vc.vendor = new char [vendorlen + 1];
+
+            vc.vendor = new char[vendorlen + 1];
             _v_readstring(ref opb, ref vc.vendor, vendorlen);
-            
+
             i = Ogg.oggpack_read(ref opb, 32);
-            
-            if (i < 0) {
+
+            if (i < 0)
+            {
                 goto err_out;
             }
-            
-            if (i > ((opb.storage - Ogg.oggpack_bytes(ref opb) >> 2))) {
+
+            if (i > ((opb.storage - Ogg.oggpack_bytes(ref opb) >> 2)))
+            {
                 goto err_out;
             }
-            
+
             vc.comments = i;
             vc.user_comments = new char[vc.comments + 1][];
             vc.comment_lengths = new int[vc.comments + 1];
-            
-            for (i = 0; i < vc.comments; i++) 
+
+            for (i = 0; i < vc.comments; i++)
             {
                 int len = Ogg.oggpack_read(ref opb, 32);
-                
-                if (len < 0) {
+
+                if (len < 0)
+                {
                     goto err_out;
                 }
-                
-                if (len > opb.storage - Ogg.oggpack_bytes(ref opb)) {
+
+                if (len > opb.storage - Ogg.oggpack_bytes(ref opb))
+                {
                     goto err_out;
                 }
-                
+
                 vc.comment_lengths[i] = len;
                 vc.user_comments[i] = new char[len + 1];
-                
+
                 _v_readstring(ref opb, ref vc.user_comments[i], len);
             }
-            
+
             /* EOP check */
-            if (Ogg.oggpack_read(ref opb, 1) != 1) { 
+            if (Ogg.oggpack_read(ref opb, 1) != 1)
+            {
                 goto err_out;
-            } 
-            
+            }
+
             return 0;
-            
+
         err_out:
             vorbis_comment_clear(ref vc);
             return OV_EBADHEADER;
         }
-        
+
         /* all of the real encoding details are here. The modes, books, everything */
         static public int _vorbis_unpack_books(ref vorbis_info vi, ref Ogg.oggpack_buffer opb)
         {
@@ -484,9 +509,14 @@ namespace OggVorbisSharp
             Ogg.oggpack_buffer opb = new Ogg.oggpack_buffer();
             char[] buffer = new char[6];
 
+            if (op == null)
+            {
+                return 0;
+            }
+            
             Ogg.oggpack_readinit(ref opb, op.packet, op.bytes);
 
-            if (op.b_o_s != 0)
+            if (op.b_o_s == 0)
             {
                 return 0; /* Not the initial packet */
             }
@@ -498,111 +528,128 @@ namespace OggVorbisSharp
 
             _v_readstring(ref opb, ref buffer, 6);
 
-            if (buffer.ToString() != "vorbis")
+            if 
+            (
+                buffer[0] != 'v' ||
+                buffer[1] != 'o' ||
+                buffer[2] != 'r' ||
+                buffer[3] != 'b' ||
+                buffer[4] != 'i' ||
+                buffer[5] != 's' 
+            )
             {
                 return 0; /* not vorbis */
             }
 
             return 1;
         }
-        
+
         /* The Vorbis header is in three packets; the initial small packet in the first page that identifies basic parameters, a second packet
           with bitstream comments and a third packet that holds the codebook. */
-        
-        static public int vorbis_synthesis_headerin(ref vorbis_info vi, ref vorbis_comment vc, ref Ogg.ogg_packet op) 
+
+        static public int vorbis_synthesis_headerin(ref vorbis_info vi, ref vorbis_comment vc, ref Ogg.ogg_packet op)
         {
             Ogg.oggpack_buffer opb = new Ogg.oggpack_buffer();
             Ogg.oggpack_readinit(ref opb, op.packet, op.bytes);
-            
+
             /* Which of the three types of header is this? */
             /* Also verify header-ness, vorbis */
             {
                 char[] buffer = new char[6];
                 int packtype = Ogg.oggpack_read(ref opb, 8);
-                
+
                 _v_readstring(ref opb, ref buffer, 6);
-                
-                if (buffer.ToString() == "vorbis")
+
+                if 
+                (
+                    buffer[0] != 'v' ||
+                    buffer[1] != 'o' ||
+                    buffer[2] != 'r' ||
+                    buffer[3] != 'b' ||
+                    buffer[4] != 'i' ||
+                    buffer[5] != 's' 
+                )
                 {
                     /* not a vorbis header */
                     return OV_ENOTVORBIS;
                 }
-                
-                switch(packtype)
+
+                switch (packtype)
                 {
                     case 0x01: /* least significant *bit* is read first */
-                    {
-                        if (op.b_o_s == 0) 
                         {
-                            /* Not the initial packet */
-                            return OV_EBADHEADER;
+                            if (op.b_o_s == 0)
+                            {
+                                /* Not the initial packet */
+                                return OV_EBADHEADER;
+                            }
+
+                            if (vi.rate != 0)
+                            {
+                                /* previously initialized info header */
+                                return OV_EBADHEADER;
+                            }
                         }
-                        
-                        if (vi.rate != 0)
-                        {
-                            /* previously initialized info header */
-                            return OV_EBADHEADER;
-                        }
-                    }
-                    return (_vorbis_unpack_info(ref vi, ref opb));
+                        return (_vorbis_unpack_info(ref vi, ref opb));
 
                     case 0x03: /* least significant *bit* is read first */
-                    {
-                        if (vi.rate == 0) 
                         {
-                            /* um... we didn't get the initial header */
-                            return OV_EBADHEADER;
+                            if (vi.rate == 0)
+                            {
+                                /* um... we didn't get the initial header */
+                                return OV_EBADHEADER;
+                            }
                         }
-                    }
-                    return (_vorbis_unpack_comment(ref vc, ref opb));
+                        return (_vorbis_unpack_comment(ref vc, ref opb));
 
                     case 0x05: /* least significant *bit* is read first */
-                    {
-                        if (vi.rate == 0 || vc.vendor == null) 
                         {
-                            /* um... we didn;t get the initial header or comments yet */
-                            return OV_EBADHEADER;
+                            if (vi.rate == 0 || vc.vendor == null)
+                            {
+                                /* um... we didn;t get the initial header or comments yet */
+                                return OV_EBADHEADER;
+                            }
                         }
-                    }
-                    return (_vorbis_unpack_books(ref vi, ref opb));
+                        return (_vorbis_unpack_books(ref vi, ref opb));
 
                     default:
-                    {
-                        /* Not a valid vorbis header type */
-                        return OV_EBADHEADER;
-                    }
+                        {
+                            /* Not a valid vorbis header type */
+                            return OV_EBADHEADER;
+                        }
                 }
             }
         }
 
         /* pack side */
-        
+
         static public int _vorbis_pack_info(ref Ogg.oggpack_buffer opb, ref vorbis_info vi)
         {
             codec_setup_info ci = vi.codec_setup as codec_setup_info;
-           
-            if (ci == null) {
+
+            if (ci == null)
+            {
                 return OV_EFAULT;
-            }                
-            
+            }
+
             /* preamble */
             Ogg.oggpack_write(ref opb, 0x01, 8);
-            _v_writestring(ref opb, new char[] {'v', 'o', 'r', 'b', 'i', 's'}, 6);
-            
+            _v_writestring(ref opb, new char[] { 'v', 'o', 'r', 'b', 'i', 's' }, 6);
+
             /* basic information about the stream */
             Ogg.oggpack_write(ref opb, 0x00, 32);
             Ogg.oggpack_write(ref opb, (uint)vi.channels, 8);
             Ogg.oggpack_write(ref opb, (uint)vi.rate, 32);
-            
+
             Ogg.oggpack_write(ref opb, (uint)vi.bitrate_upper, 32);
             Ogg.oggpack_write(ref opb, (uint)vi.bitrate_nominal, 32);
             Ogg.oggpack_write(ref opb, (uint)vi.bitrate_lower, 32);
-            
+
             Ogg.oggpack_write(ref opb, (uint)ilog2((uint)ci.blocksizes[0]), 4);
             Ogg.oggpack_write(ref opb, (uint)ilog2((uint)ci.blocksizes[1]), 4);
             Ogg.oggpack_write(ref opb, 1, 1);
-            
+
             return 0;
-        }        
+        }
     }
 }

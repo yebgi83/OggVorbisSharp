@@ -857,16 +857,16 @@ namespace OggVorbisSharp
                 int y0 = -200;
                 int y1 = -200;
 
-                fixed(lsfit_acc* fits_fixed = fits)
+                fixed (lsfit_acc* fits_fixed = fits)
                 {
                     fit_line(fits_fixed, posts - 1, ref y0, ref y1, info);
                 }
 
                 fit_valueA[0] = y0;
                 fit_valueB[0] = y0;
-                fit_valueB[1] = y1;
                 fit_valueA[1] = y1;
-
+                fit_valueB[1] = y1;
+                
                 /* Non degenerate case */
                 /* start progressive splitting. This is a greedy, non-optimal algorithm, but simple and close enough to the best answer. */
                 for (i = 2; i < posts; i++)
@@ -1258,7 +1258,7 @@ namespace OggVorbisSharp
             else
             {
                 Ogg.oggpack_write(ref opb, 0, 1);
-                ZeroMemory((IntPtr)ilogmask, vb.pcmend / 2 * sizeof(int));
+                ZeroMemory(ilogmask, vb.pcmend / 2 * sizeof(int));
                 return 0;
             }
         }
@@ -1430,7 +1430,7 @@ namespace OggVorbisSharp
             }
             else
             {
-                ZeroMemory((IntPtr)_out, sizeof(float) * n);
+                ZeroMemory(_out, sizeof(float) * n);
                 return 0;
             }
         }

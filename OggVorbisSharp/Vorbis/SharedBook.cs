@@ -38,25 +38,25 @@ namespace OggVorbisSharp
     static public unsafe partial class Vorbis
     {
         /* floor macro */
-        static public int floor(double x)
+        static internal int floor(double x)
         {
             return (int)Math.Floor(x);
         }
         
         /* rint macro */
-        static public int rint(double x)
+        static internal int rint(double x)
         {
             return (int)Math.Floor(x + 0.5f);
         }
         
         /* ldexp macro */
-        static public float ldexp(double x, double exp)
+        static internal float ldexp(double x, double exp)
         {
             return (float)(x * Math.Pow(2, exp));
         }
         
         /* doesn't currently guard under/overflow */        
-        static public uint _float32_pack(float val)
+        static uint _float32_pack(float val)
         {
             uint sign = 0;
             uint exp;
@@ -75,7 +75,7 @@ namespace OggVorbisSharp
             return sign | exp | mant;
         }
         
-        static public float _float32_unpack(uint val) 
+        static float _float32_unpack(uint val) 
         {
             double mant = val & 0x1fffff;
             uint sign = val & 0x80000000;
@@ -90,7 +90,7 @@ namespace OggVorbisSharp
         
         /* given a list of word lengths, generate a list of codewords.  Works for length ordered or unordered, always assigns the lowest valued
           codewords first.  Extended to handle unused entries (length 0) */        
-        static public uint* _make_words(int* l, int n, int sparsecount)
+        static uint* _make_words(int* l, int n, int sparsecount)
         {
             int i, j, count = 0;
             uint[] marker = new uint[33];

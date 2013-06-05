@@ -486,8 +486,6 @@ namespace OggVorbisSharp
             DATA_TYPE* oX = _out + n2 + n4;
             DATA_TYPE* T = init.trig + n4;
 
-            int _stage = 0;
-            
             do
             {
                 oX -= 4;
